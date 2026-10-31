@@ -1,0 +1,13 @@
+============================================
+        RESUMEN DE COMPRA N° 1
+============================================
+Fecha de compra : 31-10-2026 04:45
+Cliente         : Ana Pérez
+Email           : ana@correo.cl
+
+Evento          : Festival de Jazz
+Fecha evento    : 20-03-2027
+Cantidad        : 3
+Precio unitario : $18.000
+TOTAL           : $36.000
+===========================================
