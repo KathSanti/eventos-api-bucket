@@ -1,0 +1,62 @@
+# =====================================================================
+#  Docker Compose para tu computador y para GitHub Actions (job 2).
+#  Construye la imagen desde el Dockerfile y levanta la app + MySQL.
+#
+#  Uso local:   docker compose up --build     (lee las variables de .env)
+#  Detener:     docker compose down           (agrega -v para borrar también los datos)
+# =====================================================================
+name: eventos-api
+
+services:
+
+  db:
+    image: mysql:8.4                      # 8.4 es la versión LTS (8.0 ya terminó su soporte)
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-eventos_db}
+      MYSQL_USER: ${DB_USER:-eventos_app}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en .env}
+      # La app usa MYSQL_USER, no root: la clave de root se genera al azar y nadie la necesita.
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+    healthcheck:
+      # -h 127.0.0.1 (TCP) y no "localhost" (socket): durante la inicialización MySQL
+      # corre sin red, así el check solo pasa cuando la BD está lista de verdad.
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u\"$$MYSQL_USER\" -p\"$$MYSQL_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    volumes:
+      - eventos_mysql_data:/var/lib/mysql
+    ports:
+      - "3307:3306"                       # opcional: para mirar la BD desde tu computador (DBeaver, etc.)
+
+  app:
+    build: .
+    depends_on:
+      db:                                 # debe coincidir con el NOMBRE del servicio de arriba
+        condition: service_healthy        # espera a que el healthcheck de MySQL pase
+    restart: on-failure
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      # Dentro de Docker, "localhost" es el propio contenedor: la BD se llama "db".
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-eventos_db}
+      DB_USER: ${DB_USER:-eventos_app}
+      DB_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en .env}
+      JWT_SECRET: ${JWT_SECRET:?Falta JWT_SECRET en .env}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?Falta ADMIN_EMAIL en .env}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Falta ADMIN_PASSWORD en .env}
+      ADMIN_NOMBRE: ${ADMIN_NOMBRE:-Administrador}
+      ADMIN_ALLOWED_IPS: ${ADMIN_ALLOWED_IPS:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      S3_BUCKET: ${S3_BUCKET:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:-}
+    ports:
+      - "8080:8080"
+
+volumes:
+  eventos_mysql_data:

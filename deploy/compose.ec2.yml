@@ -1,0 +1,73 @@
+# =====================================================================
+#  Docker Compose para la instancia EC2 (lo copia y ejecuta el job 3 del workflow).
+#
+#  Diferencias con docker-compose.yml:
+#   - "image:" en vez de "build:": la EC2 NO compila, descarga de Docker Hub la
+#     misma imagen que se probó en el job 2 (etiquetada con el commit).
+#   - restart: unless-stopped -> si la EC2 se reinicia, los contenedores vuelven solos.
+#   - Puerto 80 -> en Postman usas http://<IP-publica-EC2>/api/... (abre el 80 en el Security Group).
+#   - Límites de memoria pensados para una instancia de 1 GB (t4g.micro / t3.micro).
+#
+#  Las variables las escribe el workflow en ~/eventos-api/.env (permisos 600).
+#  Modo de base de datos: "contenedor" (este archivo). Para RDS: compose.ec2-rds.yml
+# =====================================================================
+# Mismo nombre de proyecto que compose.ec2-rds.yml: al cambiar de modo, --remove-orphans
+# apaga el contenedor que sobra (por ejemplo, MySQL al pasar a RDS) y libera memoria.
+name: eventos-api
+
+services:
+
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    # performance_schema desactivado: ahorra ~200 MB de RAM en instancias pequeñas.
+    command: ["--performance-schema=OFF"]
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-eventos_db}
+      MYSQL_USER: ${DB_USER:-eventos_app}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD}
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u\"$$MYSQL_USER\" -p\"$$MYSQL_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    volumes:
+      - eventos_mysql_data:/var/lib/mysql   # los datos sobreviven a cada despliegue
+    # 127.0.0.1: el puerto se abre SOLO dentro de la EC2, nunca hacia internet.
+    # Sirve para entrar con MySQL Workbench por túnel SSH (ver CAMBIOS.md, sección 12).
+    ports:
+      - "127.0.0.1:3306:3306"
+
+  app:
+    image: ${DOCKERHUB_USERNAME:?Falta DOCKERHUB_USERNAME}/${DOCKER_IMAGE_NAME:?Falta DOCKER_IMAGE_NAME}-backend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-eventos_db}
+      DB_USER: ${DB_USER:-eventos_app}
+      DB_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?Falta JWT_SECRET}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?Falta ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Falta ADMIN_PASSWORD}
+      ADMIN_NOMBRE: ${ADMIN_NOMBRE:-Administrador}
+      ADMIN_ALLOWED_IPS: ${ADMIN_ALLOWED_IPS:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      S3_BUCKET: ${S3_BUCKET:?Falta S3_BUCKET}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:?Falta AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:?Falta AWS_SECRET_ACCESS_KEY}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:?Falta AWS_SESSION_TOKEN}
+      # Límite de memoria de Java: deja espacio a MySQL y al sistema operativo en 1 GB.
+      JAVA_TOOL_OPTIONS: "-Xmx384m -XX:MaxMetaspaceSize=128m"
+    ports:
+      - "80:8080"                           # internet:80  ->  contenedor:8080
+
+volumes:
+  eventos_mysql_data:

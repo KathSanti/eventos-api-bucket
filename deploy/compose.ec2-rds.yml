@@ -1,0 +1,38 @@
+# =====================================================================
+#  Docker Compose para la EC2 cuando la base de datos está en AWS RDS.
+#  Se usa cuando la variable de GitHub DB_MODE = rds (lo elige el job 3).
+#
+#  Diferencia con compose.ec2.yml: NO hay servicio "db". MySQL lo administra AWS (RDS),
+#  y la app se conecta al endpoint de RDS (secret DB_HOST) con el usuario maestro (secret DB_USER).
+#
+#  Como la EC2 ya no corre MySQL, Java puede usar más memoria.
+# =====================================================================
+name: eventos-api
+
+services:
+
+  app:
+    image: ${DOCKERHUB_USERNAME:?Falta DOCKERHUB_USERNAME}/${DOCKER_IMAGE_NAME:?Falta DOCKER_IMAGE_NAME}-backend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      # Endpoint de RDS, por ejemplo: eventos-db.abc123xyz.us-east-1.rds.amazonaws.com
+      DB_HOST: ${DB_HOST:?Falta DB_HOST (endpoint de RDS)}
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-eventos_db}
+      DB_USER: ${DB_USER:?Falta DB_USER (usuario maestro de RDS)}
+      DB_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?Falta JWT_SECRET}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?Falta ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Falta ADMIN_PASSWORD}
+      ADMIN_NOMBRE: ${ADMIN_NOMBRE:-Administrador}
+      ADMIN_ALLOWED_IPS: ${ADMIN_ALLOWED_IPS:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      S3_BUCKET: ${S3_BUCKET:?Falta S3_BUCKET}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:?Falta AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:?Falta AWS_SECRET_ACCESS_KEY}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:?Falta AWS_SESSION_TOKEN}
+      JAVA_TOOL_OPTIONS: "-Xmx512m -XX:MaxMetaspaceSize=128m"
+    ports:
+      - "80:8080"

@@ -1,0 +1,22 @@
+# Lo que NO se envía a Docker al construir la imagen.
+
+# Secretos: si .env entra a la imagen, queda publicado en Docker Hub.
+.env
+.env.*
+!.env.example
+
+# El Dockerfile compila dentro de la imagen: no necesita el target/ local
+# (y así no se cuela un .jar viejo). OJO: src/ NO va aquí, el Dockerfile lo copia.
+target/
+
+# Cosas que no son parte de la aplicación
+.git
+.github
+.vscode
+.idea
+postman/
+deploy/
+*.md
+docker-compose.yml
+**/.DS_Store
+__MACOSX/
