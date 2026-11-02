@@ -1,131 +1,28 @@
 {
   "info": {
-    "name": "Eventos API (dev)",
-    "description": "Pruebas de la API de eventos. Ejecuta las carpetas en orden. Los tokens se guardan solos en las variables de la colección.",
+    "name": "Eventos API - Archivos en AWS S3",
+    "description": "Colección mínima para demostrar los requisitos de S3. Ejecuta en orden. El token y el numeroResumen se guardan solos.\n\nAntes de empezar: levanta la API con S3_BUCKET y las credenciales de AWS Academy en tu .env.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
-  "item": [
+  "variable": [
     {
-      "name": "1. Públicos",
-      "item": [
-        {
-          "name": "Listar eventos (sin token)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/eventos",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "eventos"
-              ]
-            },
-            "description": "",
-            "auth": {
-              "type": "noauth"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Detalle de evento",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/eventos/Feria Tecnológica",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "eventos",
-                "Feria Tecnológica"
-              ]
-            },
-            "description": "",
-            "auth": {
-              "type": "noauth"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ]
-        }
-      ]
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
     },
     {
-      "name": "2. Autenticación",
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "numeroResumen",
+      "value": "",
+      "description": "Lo llena 'Comprar entradas'"
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Login y compra",
       "item": [
-        {
-          "name": "Registro de cliente",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/auth/registro",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "registro"
-              ]
-            },
-            "description": "Guarda el token en la variable {{token}}. Si ya te registraste, usa 'Login cliente'.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Ana Pérez\",\n  \"email\": \"ana@correo.cl\",\n  \"password\": \"ClaveSegura123\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "auth": {
-              "type": "noauth"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Responde 201\", () => pm.response.to.have.status(201));",
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"token\", pm.response.json().token);"
-                ]
-              }
-            }
-          ]
-        },
         {
           "name": "Login cliente",
           "request": {
@@ -175,180 +72,7 @@
           ]
         },
         {
-          "name": "Login admin",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/auth/login",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "login"
-              ]
-            },
-            "description": "Usa ADMIN_EMAIL y ADMIN_PASSWORD de tu archivo .env",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@eventos.local\",\n  \"password\": \"{{adminPassword}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "auth": {
-              "type": "noauth"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
-                  "if (pm.response.code === 200) pm.collectionVariables.set(\"tokenAdmin\", pm.response.json().token);"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Login con clave incorrecta (5 veces = 401; la 6.ª = 423 bloqueada)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/auth/login",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "login"
-              ]
-            },
-            "description": "",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"ana@correo.cl\",\n  \"password\": \"incorrecta\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "auth": {
-              "type": "noauth"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"401 o 423\", () => pm.expect([401,423]).to.include(pm.response.code));"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "3. Cliente autenticado",
-      "item": [
-        {
-          "name": "Mi perfil SIN token (espera 401)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/clientes/me",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "clientes",
-                "me"
-              ]
-            },
-            "description": "",
-            "auth": {
-              "type": "noauth"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Responde 401\", () => pm.response.to.have.status(401));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Mi perfil",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/clientes/me",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "clientes",
-                "me"
-              ]
-            },
-            "description": "",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Comprar entradas",
+          "name": "Comprar entradas Festival de Jazz (guarda numeroResumen)",
           "request": {
             "method": "POST",
             "header": [
@@ -367,10 +91,10 @@
                 "compras"
               ]
             },
-            "description": "Guarda numeroResumen (id de la compra) para la carpeta 6.",
+            "description": "Crea la compra cuyo resumen se usará en todas las pruebas.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombreEvento\": \"Concierto Rock Duoc\",\n  \"cantidad\": 2\n}",
+              "raw": "{\n  \"nombreEvento\": \"Festival de Jazz\",\n  \"cantidad\": 2\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -403,357 +127,14 @@
               }
             }
           ]
-        },
-        {
-          "name": "Mis compras",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/clientes/me/compras",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "clientes",
-                "me",
-                "compras"
-              ]
-            },
-            "description": "",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Crear evento como CLIENTE (espera 403)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/eventos",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "eventos"
-              ]
-            },
-            "description": "",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Evento no permitido\",\n  \"fecha\": \"2027-01-15\",\n  \"precio\": 5000\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Responde 403\", () => pm.response.to.have.status(403));"
-                ]
-              }
-            }
-          ]
         }
       ]
     },
     {
-      "name": "4. Administrador",
+      "name": "1. Generar archivo",
       "item": [
         {
-          "name": "Crear evento",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/eventos",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "eventos"
-              ]
-            },
-            "description": "",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Festival de Jazz\",\n  \"fecha\": \"2027-03-20\",\n  \"precio\": 18000\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{tokenAdmin}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Responde 201\", () => pm.response.to.have.status(201));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Listar clientes",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/clientes",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "clientes"
-              ]
-            },
-            "description": "",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{tokenAdmin}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Desbloquear cliente (cambia el id)",
-          "request": {
-            "method": "PATCH",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/clientes/2/desbloquear",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "clientes",
-                "2",
-                "desbloquear"
-              ]
-            },
-            "description": "",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{tokenAdmin}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Responde 204\", () => pm.response.to.have.status(204));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Comprar como ADMIN (espera 403)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/compras",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "compras"
-              ]
-            },
-            "description": "",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombreEvento\": \"Concierto Rock Duoc\",\n  \"cantidad\": 1\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{tokenAdmin}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Responde 403\", () => pm.response.to.have.status(403));"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "5. Ataques al token",
-      "item": [
-        {
-          "name": "Token alterado (espera 401)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/clientes/me",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "clientes",
-                "me"
-              ]
-            },
-            "description": "El script previo cambia una letra del payload del token: la firma deja de coincidir.",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{tokenAlterado}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Responde 401\", () => pm.response.to.have.status(401));"
-                ]
-              }
-            },
-            {
-              "listen": "prerequest",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "const t = pm.collectionVariables.get(\"token\") || \"\";",
-                  "const p = t.split(\".\");",
-                  "if (p.length === 3) { p[1] = (p[1][0] === \"a\" ? \"b\" : \"a\") + p[1].slice(1); }",
-                  "pm.collectionVariables.set(\"tokenAlterado\", p.join(\".\"));"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "6. Resumen de compra y AWS S3",
-      "description": "Ejecuta antes '3. Cliente autenticado > Comprar entradas' (guarda {{numeroResumen}}). Requiere credenciales de AWS Academy vigentes en .env.",
-      "item": [
-        {
-          "name": "1. Generar resumen (archivo físico)",
+          "name": "Generar archivo del resumen (.txt) - se descarga",
           "request": {
             "method": "GET",
             "header": [],
@@ -769,7 +150,7 @@
                 "resumen"
               ]
             },
-            "description": "En Postman: flecha junto a Send -> 'Send and Download' para guardarlo en tu computador.",
+            "description": "Requisito 1. El microservicio genera el resumen .txt desde la compra y lo devuelve como archivo descargable. En Postman: flecha junto a Send -> 'Send and Download' y se guarda en tu computador. Este archivo queda solo en tu equipo, todavía NO está en S3.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -793,9 +174,14 @@
               }
             }
           ]
-        },
+        }
+      ]
+    },
+    {
+      "name": "2. Subir a S3",
+      "item": [
         {
-          "name": "2. Subir resumen a S3",
+          "name": "Subir resumen a S3 (se guarda solo en la carpeta {numero}/)",
           "request": {
             "method": "POST",
             "header": [],
@@ -812,7 +198,7 @@
                 "s3"
               ]
             },
-            "description": "",
+            "description": "Requisito 2. No necesitas adjuntar nada: el servidor vuelve a generar el resumen desde la compra y lo guarda automáticamente en el bucket, en la carpeta con el número de la compra: {numero}/resumen-compra-{numero}.txt. En la respuesta revisa 'key' y 'carpeta', y después muéstralo en la consola de S3.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -839,51 +225,14 @@
               }
             }
           ]
-        },
+        }
+      ]
+    },
+    {
+      "name": "3. Reemplazar en S3",
+      "item": [
         {
-          "name": "3. Descargar resumen desde S3",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/compras/{{numeroResumen}}/resumen/s3",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "compras",
-                "{{numeroResumen}}",
-                "resumen",
-                "s3"
-              ]
-            },
-            "description": "'Send and Download' para guardar el archivo.",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "4. Modificar resumen en S3 (subir .txt corregido)",
+          "name": "Reemplazar resumen en S3 (subir .txt corregido)",
           "request": {
             "method": "PUT",
             "header": [],
@@ -900,7 +249,7 @@
                 "s3"
               ]
             },
-            "description": "Body -> form-data -> clave 'file' (tipo File): elige el .txt que descargaste y editaste.",
+            "description": "Requisito 3. Body -> form-data -> clave 'file' (tipo File): elige el .txt que descargaste y editaste. Se guarda con la MISMA clave, en la misma carpeta.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -934,88 +283,40 @@
               }
             }
           ]
-        },
+        }
+      ]
+    },
+    {
+      "name": "4. Consultar y descargar",
+      "item": [
         {
-          "name": "5. Registro de otro cliente",
+          "name": "Consultar y descargar resumen desde S3",
           "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "method": "GET",
+            "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/auth/registro",
+              "raw": "{{baseUrl}}/api/compras/{{numeroResumen}}/resumen/s3",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "auth",
-                "registro"
+                "compras",
+                "{{numeroResumen}}",
+                "resumen",
+                "s3"
               ]
             },
-            "description": "Si responde 409 (ya existe), usa el request 6.",
+            "description": "Requisito 5. Busca el archivo en la carpeta {numero}/ del bucket. 'Send and Download' para guardarlo.",
             "auth": {
-              "type": "noauth"
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Luis Soto\",\n  \"email\": \"luis@correo.cl\",\n  \"password\": \"OtraClave123\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
                 }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Responde 201\", () => pm.response.to.have.status(201));",
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"tokenOtro\", pm.response.json().token);"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "6. Login otro cliente",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/auth/login",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "login"
               ]
-            },
-            "description": "",
-            "auth": {
-              "type": "noauth"
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"luis@correo.cl\",\n  \"password\": \"OtraClave123\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
             }
           },
           "event": [
@@ -1025,98 +326,19 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
-                  "if (pm.response.code === 200) pm.collectionVariables.set(\"tokenOtro\", pm.response.json().token);"
+                  "pm.test(\"Viene como archivo adjunto\", () => pm.expect(pm.response.headers.get(\"Content-Disposition\")).to.include(\"attachment\"));"
                 ]
               }
             }
           ]
-        },
+        }
+      ]
+    },
+    {
+      "name": "5. Eliminar",
+      "item": [
         {
-          "name": "7. Otro cliente intenta descargar el resumen ajeno (espera 404)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/compras/{{numeroResumen}}/resumen/s3",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "compras",
-                "{{numeroResumen}}",
-                "resumen",
-                "s3"
-              ]
-            },
-            "description": "Defensa IDOR: responde 404 (no 403) para no revelar que el resumen existe.",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{tokenOtro}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Responde 404\", () => pm.response.to.have.status(404));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "8. Admin descarga el resumen (permitido)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/compras/{{numeroResumen}}/resumen/s3",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "compras",
-                "{{numeroResumen}}",
-                "resumen",
-                "s3"
-              ]
-            },
-            "description": "",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{tokenAdmin}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "9. Borrar resumen de S3",
+          "name": "Eliminar resumen de S3",
           "request": {
             "method": "DELETE",
             "header": [],
@@ -1133,7 +355,7 @@
                 "s3"
               ]
             },
-            "description": "",
+            "description": "Requisito 4. Valida que exista y lo borra. Responde 204.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1158,9 +380,9 @@
           ]
         },
         {
-          "name": "10. Descargar después de borrar (espera 404)",
+          "name": "Eliminar otra vez (valida existencia: espera 404)",
           "request": {
-            "method": "GET",
+            "method": "DELETE",
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/compras/{{numeroResumen}}/resumen/s3",
@@ -1175,7 +397,7 @@
                 "s3"
               ]
             },
-            "description": "",
+            "description": "Requisito 4. El archivo ya no existe: la API lo detecta con objectExists() y responde 404 (S3 por sí solo respondería éxito).",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1200,9 +422,9 @@
           ]
         },
         {
-          "name": "11. Sin token (espera 401)",
+          "name": "Descargar después de borrar (espera 404)",
           "request": {
-            "method": "POST",
+            "method": "GET",
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/compras/{{numeroResumen}}/resumen/s3",
@@ -1217,9 +439,16 @@
                 "s3"
               ]
             },
-            "description": "",
+            "description": "Confirma que el archivo ya no está en S3.",
             "auth": {
-              "type": "noauth"
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
             }
           },
           "event": [
@@ -1228,47 +457,13 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Responde 401\", () => pm.response.to.have.status(401));"
+                  "pm.test(\"Responde 404\", () => pm.response.to.have.status(404));"
                 ]
               }
             }
           ]
         }
       ]
-    }
-  ],
-  "variable": [
-    {
-      "key": "baseUrl",
-      "value": "http://localhost:8080",
-      "description": "Local: http://localhost:8080 · EC2: http://<IP-publica-EC2>"
-    },
-    {
-      "key": "adminPassword",
-      "value": "",
-      "description": "Copia aquí ADMIN_PASSWORD de tu archivo .env"
-    },
-    {
-      "key": "token",
-      "value": ""
-    },
-    {
-      "key": "tokenAdmin",
-      "value": ""
-    },
-    {
-      "key": "tokenAlterado",
-      "value": ""
-    },
-    {
-      "key": "numeroResumen",
-      "value": "",
-      "description": "Lo llena 'Comprar entradas'"
-    },
-    {
-      "key": "tokenOtro",
-      "value": "",
-      "description": "Token de un segundo cliente (prueba IDOR)"
     }
   ]
 }
